@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <title>Uniformatore di Maiuscole</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; }
+    textarea { width: 100%; font-size: 16px; }
+    pre { background: #f0f0f0; padding: 10px; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>Uniformatore di Maiuscole</h1>
+  <textarea id="inputText" rows="10" placeholder="Incolla qui il testo..."></textarea><br/><br/>
+  <button onclick="uniforma()">Uniforma</button>
+
+  <h2>Risultato:</h2>
+  <pre id="outputText"></pre>
+
+  <script>
+    async function uniforma() {
+      const input = document.getElementById('inputText').value;
+
+      const response = await fetch('/api/uniforma', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ input })
+      });
+
+      const data = await response.json();
+      document.getElementById('outputText').innerText = data.choices[0].message.content;
+    }
+  </script>
+</body>
+</html>
