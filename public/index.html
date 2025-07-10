@@ -4,31 +4,110 @@
   <meta charset="UTF-8" />
   <title>Uniformatore di Maiuscole</title>
   <style>
-    body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; }
-    textarea { width: 100%; font-size: 16px; }
-    pre { background: #f0f0f0; padding: 10px; white-space: pre-wrap; }
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      line-height: 1.6;
+      color: #333;
+    }
+    textarea {
+      width: 100%;
+      font-size: 16px;
+      padding: 10px;
+      box-sizing: border-box;
+    }
+    button {
+      background-color: #1d72b8;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-right: 10px;
+      border-radius: 4px;
+    }
+    button:hover {
+      background-color: #155d8b;
+    }
+    pre {
+      background: #f0f0f0;
+      padding: 15px;
+      white-space: pre-wrap;
+      border-radius: 4px;
+    }
+    #status {
+      margin-top: 10px;
+      font-size: 14px;
+      color: #555;
+    }
   </style>
 </head>
 <body>
   <h1>Uniformatore di Maiuscole</h1>
-  <textarea id="inputText" rows="10" placeholder="Incolla qui il testo..."></textarea><br/><br/>
+
+  <textarea id="inputText" rows="8" placeholder="Incolla qui il testo originale..."></textarea><br/><br/>
   <button onclick="uniforma()">Uniforma</button>
 
   <h2>Risultato:</h2>
   <pre id="outputText"></pre>
+  <button onclick="copiaRisultato()">Copia Risultato</button>
+
+  <div id="status"></div>
 
   <script>
     async function uniforma() {
-      const input = document.getElementById('inputText').value;
+      const input = document.getElementById('inputText').value.trim();
+      const status = document.getElementById('status');
+      const output = document.getElementById('outputText');
 
-      const response = await fetch('/api/uniforma', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ input })
-      });
+      if (!input) {
+        status.innerText = "⚠️ Inserisci del testo da uniformare.";
+        return;
+      }
 
-      const data = await response.json();
-      document.getElementById('outputText').innerText = data.choices[0].message.content;
+      status.innerText = "⏳ Elaborazione in corso...";
+
+      try {
+        const response = await fetch('/api/uniforma', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ input })
+        });
+
+        const data = await response.json();
+
+        if (data.choices && data.choices[0] && data.choices[0].message) {
+          output.innerText = data.choices[0].message.content;
+          status.innerText = "✅ Fatto! Puoi copiare il testo.";
+        } else {
+          output.innerText = "";
+          status.innerText = "❌ Errore: risposta inattesa.";
+        }
+      } catch (err) {
+        output.innerText = "";
+        status.innerText = "❌ Errore durante l'elaborazione.";
+        console.error(err);
+      }
+    }
+
+    function copiaRisultato() {
+      const output = document.getElementById('outputText').innerText;
+      const status = document.getElementById('status');
+
+      if (!output) {
+        status.innerText = "⚠️ Nessun risultato da copiare.";
+        return;
+      }
+
+      navigator.clipboard.writeText(output)
+        .then(() => {
+          status.innerText = "📋 Testo copiato negli appunti!";
+        })
+        .catch(() => {
+          status.innerText = "❌ Impossibile copiare il testo.";
+        });
     }
   </script>
 </body>
